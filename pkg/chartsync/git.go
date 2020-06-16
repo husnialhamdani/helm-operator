@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"os"
 
 	"github.com/fluxcd/flux/pkg/git"
 	"github.com/go-kit/kit/log"
@@ -292,7 +293,9 @@ func (c *GitChartSync) sync(hr *v1.HelmRelease, mirrorName string, repo *git.Rep
 // indicates whether the repo was already present (`true` if so,
 // `false` otherwise).
 func (c *GitChartSync) maybeMirror(mirrorName string, source *v1.GitChartSource, namespace string) bool {
-	gitURL := source.GitURL
+	loadUser := strings.Replace(source.gitURL, "$(GIT_AUTHUSER)", os.Getenv("GIT_AUTHUSER"), 1)
+	loadKey  := strings.Replace(loadUser, "$(GIT_AUTHKEY)", os.Getenv("GIT_AUTHKEY"), 1)
+	gitURL := loadKey
 	var err error
 
 	if source.SecretRef != nil && source.SecretRef.Namespace == "" {
